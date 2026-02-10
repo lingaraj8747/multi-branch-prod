@@ -15,6 +15,6 @@ spec:
     spec:
       containers:
         - name: myc1
-          image: lingaraj8747/multibranch-flask-app:build-13
+          image: lingaraj8747/multibranch-flask-app:build-14
           ports:
             - containerPort: 5000
