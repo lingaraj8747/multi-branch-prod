@@ -3,7 +3,8 @@ kind: Deployment
 metadata: 
     name: movie-app
     namespace: default
-spec: 
+spec:
+  replicas: 4
   selector: 
     MatchLabels:
        app: movie-app
