@@ -68,7 +68,7 @@ pipeline {
                             git diff --cached --quiet || git commit -m "update image ${IMAGE_TAG}"
 
                             # Push changes using credentials safely
-                            git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/lingaraj8747/k8s-multi-branch-prod.git main
+                            git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/lingaraj8747/multi-branch-prod.git main
                         '''
                     }
                 }
