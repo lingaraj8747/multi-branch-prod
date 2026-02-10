@@ -6,7 +6,7 @@ metadata:
 spec:
   replicas: 4
   selector: 
-    MatchLabels:
+    matchLabels:
        app: movie-app
   template:
     metadata:
