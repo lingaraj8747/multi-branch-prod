@@ -23,8 +23,8 @@ pipeline {
             when { branch 'main' }
             steps {
                 script {
-                    IMAGE_TAG = "build-${BUILD_NUMBER}"
-                    env.IMAGE_TAG = IMAGE_TAG
+                    env.IMAGE_TAG = "build-${BUILD_NUMBER}"
+                    
                 }
 
                 withCredentials([usernamePassword(
