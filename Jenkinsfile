@@ -23,8 +23,8 @@ pipeline {
             when { branch 'main' }
             steps {
                 script {
+                    // Properly declare IMAGE_TAG
                     env.IMAGE_TAG = "build-${BUILD_NUMBER}"
-                    
                 }
 
                 withCredentials([usernamePassword(
@@ -32,11 +32,13 @@ pipeline {
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    sh """
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin <<< "$DOCKER_PASS"
+                    // Use single quotes to prevent Groovy interpolation of secrets
+                    sh '''
+                        set -e
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                         docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
                         docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                    """
+                    '''
                 }
             }
         }
@@ -50,21 +52,28 @@ pipeline {
                         usernameVariable: 'GIT_USERNAME',
                         passwordVariable: 'GIT_TOKEN'
                     )]) {
-                        sh """
+                        sh '''
                             set -e
                             git config user.name "${GIT_USER}"
                             git config user.email "${GIT_EMAIL}"
                             git fetch origin
                             git checkout main
                             git reset --hard origin/main
+
+                            # Update deployment image
                             sed -i 's|image:.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|' k8s/deployment.yaml
+
+                            # Commit only if there are changes
                             git add k8s/deployment.yaml
                             git diff --cached --quiet || git commit -m "update image ${IMAGE_TAG}"
+
+                            # Push changes using credentials safely
                             git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/lingaraj8747/k8s-multi-branch-prod.git main
-                        """
+                        '''
                     }
                 }
             }
         }
     }
 }
+
