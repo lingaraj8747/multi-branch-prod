@@ -27,13 +27,13 @@ pipeline {
                     env.IMAGE_TAG = "build-${BUILD_NUMBER}"
                 
 
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-cred',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
-                    // Use single quotes to prevent Groovy interpolation of secrets
-                    sh '''
+                    withCredentials([usernamePassword(
+                       credentialsId: 'dockerhub-cred',
+                       usernameVariable: 'DOCKER_USER',
+                       passwordVariable: 'DOCKER_PASS'
+                    )]) {
+                        // Use single quotes to prevent Groovy interpolation of secrets
+                       sh '''
                         set -e
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                         docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
