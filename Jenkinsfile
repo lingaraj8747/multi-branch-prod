@@ -60,7 +60,7 @@ pipeline {
 
                         sed -i "s|image:.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|" k8s/deployment.yaml
 
-                        git add k8s/deployment.yml
+                        git add k8s/deployment.yaml
                         git diff --cached --quiet || git commit -m "Updated image to ${IMAGE_TAG}"
                         git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/lingaraj8747/Multi-Branch-Prod.git main
                         """
