@@ -7,13 +7,13 @@ pipeline {
 
     environment {
         IMAGE_NAME = "lingaraj8747/multibranch-flask-app"
-        GIT_USER  = "lingaraj8747"
-        GIT_EMAIL = "lingarajmaravalli6@gmail.com"
+        GIT_USER   = "lingaraj8747"
+        GIT_EMAIL  = "lingarajmaravalli6@gmail.com"
     }
 
     stages {
 
-        stage('Git Checkout') {
+        stage('Checkout') {
             steps {
                 checkout scm
             }
@@ -23,28 +23,24 @@ pipeline {
             when { branch 'main' }
             steps {
                 script {
-                    // Properly declare IMAGE_TAG
                     env.IMAGE_TAG = "build-${BUILD_NUMBER}"
-                
 
                     withCredentials([usernamePassword(
-                       credentialsId: 'dockerhub-cred',
-                       usernameVariable: 'DOCKER_USER',
-                       passwordVariable: 'DOCKER_PASS'
+                        credentialsId: 'dockerhub-cred',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
                     )]) {
-                        // Use single quotes to prevent Groovy interpolation of secrets
-                       sh '''
-                        set -e
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        sh """
                         docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                         docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                      '''
-                   }
+                        """
+                    }
                 }
             }
         }
 
-        stage('Update k8s Manifest') {
+        stage('Update K8s Manifest') {
             when { branch 'main' }
             steps {
                 script {
@@ -53,28 +49,24 @@ pipeline {
                         usernameVariable: 'GIT_USERNAME',
                         passwordVariable: 'GIT_TOKEN'
                     )]) {
-                        sh '''
-                            set -e
-                            git config user.name "${GIT_USER}"
-                            git config user.email "${GIT_EMAIL}"
-                            git fetch origin
-                            git checkout main
-                            git reset --hard origin/main
+                        sh """
+                        set -e
+                        git config user.name "$GIT_USER"
+                        git config user.email "$GIT_EMAIL"
 
-                            # Update deployment image
-                            sed -i 's|image:.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|' k8s/deployment.yaml
+                        git fetch origin
+                        git checkout main
+                        git reset --hard origin/main
 
-                            # Commit only if there are changes
-                            git add k8s/deployment.yaml
-                            git diff --cached --quiet || git commit -m "update image ${IMAGE_TAG}"
+                        sed -i "s|image:.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|" k8s/deployment.yml
 
-                            # Push changes using credentials safely
-                            git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/lingaraj8747/multi-branch-prod.git main
-                        '''
+                        git add k8s/deployment.yml
+                        git diff --cached --quiet || git commit -m "Updated image to ${IMAGE_TAG}"
+                        git push https://${GIT_USERNAME}:${GIT_TOKEN}@github.com/lingaraj8747/Multi-Branch-Prod.git main
+                        """
                     }
                 }
             }
         }
     }
 }
-
